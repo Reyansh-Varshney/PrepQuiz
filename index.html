@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Quiz Generator</title>
+    <footer>
+        <p style="text-align: center; color: #777; font-size: 0.8em; margin-top: 20px;">Made by Reyansh Varshney</p>
+    </footer>
+    <!-- Inter Font (HeroUI Style) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+
+    <style>
+        /* OpenAI Inspired Color Palette */
+        :root {
+            --primary: #10a37f;
+            /* OpenAI Green */
+            --primary-light: #d0f5ef;
+            --primary-dark: #0b8062;
+            --neutralPrimary: #263238;
+            --neutralSecondary: #546e7a;
+            --neutralTertiary: #90a4ae;
+            --neutralQuaternary: #eceff1;
+            --neutralLight: #f5f5f5;
+            --white: #ffffff;
+            --success: #4caf50;
+            --error: #f44336;
+            --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--neutralQuaternary);
+            color: var(--neutralPrimary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            margin: 20px;
+            padding: 30px;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--box-shadow);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            /* Bolder */
+        }
+
+        /* Chatbot Styling */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-message {
+            padding: 14px 20px;
+            /* Slightly larger padding */
+            border-radius: 24px;
+            /* Rounder bubbles */
+            margin-bottom: 12px;
+            max-width: 85%;
+            /* Reduced max-width */
+            word-wrap: break-word;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            background-color: var(--primary-light);
+            color: var(--neutralPrimary);
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: var(--neutralLight);
+            color: var(--neutralPrimary);
+            align-self: flex-start;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            /* Adjusted margin */
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--neutralSecondary);
+            font-weight: 500;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border: 1px solid var(--neutralTertiary);
+            border-radius: 8px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            -webkit-appearance: none; /* Remove default styles */
+            -moz-appearance: none;
+            appearance: none;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            outline: 2px solid transparent;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+       button {
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--white);
+            background-color: var(--primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            margin-left: 10px;
+        }
+
+        .btn-success:hover {
+            background-color: #388e3c;
+        }
+
+        /* Quiz Container */
+        #quizContainer {
+            margin-top: 25px;
+        }
+
+        .question-card {
+            display: none;
+            padding: 20px;
+            background-color: var(--neutralLight);
+            border-radius: 8px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-card.active {
+            display: block;
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question {
+            font-size: 1.15rem;
+            color: var(--neutralPrimary);
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        .options {
+            margin-bottom: 25px;
+        }
+
+        .option {
+            display: block;
+            padding: 12px 16px;
+            background-color: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            border: 1px solid var(--neutralTertiary);
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .option:hover {
+            background-color: var(--neutralQuaternary);
+            border-color: var(--primary);
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        .option[data-correct="true"] {
+            background-color: var(--success);
+            color: var(--white);
+            border: none;
+        }
+
+        .option[data-correct="false"] {
+            background-color: var(--error);
+            color: var(--white);
+            border: none;
+        }
+
+        /* Result Card */
+        .result-card {
+            display: none;
+            text-align: center;
+            padding: 35px;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .result-card.active {
+            display: block;
+        }
+
+        .score {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 18px 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            button {
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+
+            .question {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Chatbot Quiz Generator</h1>
+        </header>
+
+        <div class="chat-container">
+            <div class="chat-message bot-message">
+                Hello! Paste your chapter text below to generate a quiz.
+            </div>
+
+            <div class="form-group">
+                <label for="numQuestions">Number of Questions:</label>
+                <input type="number" id="numQuestions" min="1" max="15" value="2">
+            </div>
+
+            <div class="form-group">
+                <label for="chapterText">Chapter Text:</label>
+                <textarea id="chapterText" rows="8" placeholder="Paste your chapter text here"></textarea>
+            </div>
+
+            <div class="buttons">
+                <button id="generateQuizButton" disabled>Generate Quiz</button>
+                <button class="btn-success" style="display:none" onclick="submitQuiz()">Submit Quiz</button>
+            </div>
+
+            <div id="quizContainer">
+                <!-- Quiz questions will be dynamically added here -->
+            </div>
+
+            <div class="result-card" id="result">
+                <h2>Quiz Completed!</h2>
+                <p>You've answered all questions!</p>
+                <div class="score"><span id="score">0</span>/<span id="totalScore">2</span></div>
+                <p id="feedback"></p>
+                <p id="percentageFeedback"></p>
+                <div id="reviewContainer"></div>
+                <button onclick="reviewQuiz()">Review Answers</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chapterTextarea = document.getElementById('chapterText');
+            const generateQuizButton = document.getElementById('generateQuizButton');
+            const quizContainer = document.getElementById('quizContainer');
+            const resultCard = document.getElementById('result');
+            const reviewContainer = document.getElementById('reviewContainer');
+            const numQuestionsInput = document.getElementById('numQuestions');
+
+            let totalQuestions;
+
+            let currentQuestion = 1;
+            let questions = [];
+            let answers = {};
+            let correctAnswers = [];
+
+            const scoreSpan = document.getElementById('score');
+            const feedbackParagraph = document.getElementById('feedback');
+            const totalScoreSpan = document.getElementById('totalScore');
+            const percentageFeedback = document.getElementById('percentageFeedback');
+
+            const GEMINI_API_KEY = "AIzaSyDuaQa1DgfftV7xW8yQ8ieL-AdbuQMMNoI"; // **REPLACE WITH YOUR API KEY** - WARNING: SECURITY RISK
+
+
+            chapterTextarea.addEventListener('input', () => {
+                generateQuizButton.disabled = !chapterTextarea.value.trim(); // Enable if empty
+            });
+
+            generateQuizButton.addEventListener('click', async () => {
+                const chapterText = chapterTextarea.value.trim();
+
+                if (!chapterText) {
+                    alert("Please enter chapter text.");
+                    return;
+                }
+
+                try {
+                    totalQuestions = parseInt(numQuestionsInput.value);
+                    questions = await generateQuestions(chapterText);
+
+                    answers = {};
+                    correctAnswers = new Array(questions.length).fill(null);
+                    currentQuestion = 1;
+
+
+
+                    displayQuestions(questions);
+
+
+                    quizContainer.style.display = 'block';
+                    resultCard.style.display = 'none';
+                    reviewContainer.innerHTML = '';
+
+                    // Hide "Review Answers" initially
+                    document.querySelector('.btn-success').style.display = 'inline-block';
+
+                } catch (error) {
+                    alert("Error generating quiz: " + error.message);
+                    console.error("Error:", error);
+                }
+            });
+
+            async function generateQuestions(text) {
+                const modelName = "gemini-2.0-flash"; // Specify the model here
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+
+                const prompt = `Generate ${totalQuestions} multiple-choice questions with 4 answer choices (A, B, C, D) based on the following text. Provide the correct answer for each question at the end, clearly labeled as "Correct Answer:". The output MUST be a valid JSON array of objects, and NOTHING ELSE. Each object should have the following keys: "question", "A", "B", "C", "D", and "Correct Answer".
+                Example:
+                [
+                    {
+                        "question": "What is the capital of France?",
+                        "A": "Berlin",
+                        "B": "Paris",
+                        "C": "Rome",
+                        "D": "Madrid",
+                        "Correct Answer": "B"
+                    },
+                    {
+                        "question": "What is the largest planet in our solar system?",
+                        "A": "Mars",
+                        "B": "Earth",
+                        "C": "Jupiter",
+                        "D": "Saturn",
+                        "Correct Answer": "C"
+                    }
+                ]
+                Text: ${text}`;
+
+                const payload = {
+                    "contents": [{ "parts": [{ "text": prompt }] }],
+                    "generationConfig": {
+                        "temperature": 0.7,
+                        "topP": 0.95,
+                        "topK": 40,
+                        "maxOutputTokens": 2048,
+                    },
+                };
+                try {
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Response Text:", errorText);
+                        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    let responseText = data.candidates[0].content.parts[0].text;
+
+                    responseText = responseText.replace(/\njson\n/g, '');
+                    responseText = responseText.replace(/\n/g, '');
+                    responseText = responseText.trim();
+
+                    let questions; // Declare questions outside the inner try
+
+                    try {
+                        // Attempt strict JSON parsing
+                        questions = JSON.parse(responseText);
+                    } catch (strictParseError) {
+                        console.warn("Strict JSON parsing failed. Trying a more lenient approach...",
+                            strictParseError);
+
+                        // **Lenient Parsing (Regular Expression-Based):**
+                        try {
+                            // This is a VERY basic example. You might need to adapt it
+                            // to your specific response format. It tries to extract
+                            // a JSON-like structure from the response.
+                            const jsonString = responseText.match(/\[.*\]/)?.[0]; // Find JSON-like array
+                            if (jsonString) {
+                                questions = JSON.parse(jsonString);
+                            } else {
+                                throw new Error("Could not extract JSON-like array from response.");
+                            }
+
+                        } catch (lenientParseError) {
+                            console.error("Lenient JSON parsing failed:", lenientParseError);
+                            console.error("Gemini Response (for analysis):", responseText);
+                            throw new Error(
+                                "Failed to parse Gemini's JSON response, even with a lenient approach. Check the format."
+                            );
+                        }
+                    }
+
+                    return questions;
+
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    console.error("Gemini API Error:", error);
+                    throw new Error(`Failed to generate questions from Gemini API: ${error.message}`);
+                }
+
+            }
+
+            function displayQuestions(questions) {
+                quizContainer.innerHTML = '';
+                currentQuestion = 1;
+                totalQuestions = questions.length;
+
+                scoreSpan.textContent = `${0}`;
+                totalScoreSpan.textContent = `${totalQuestions}`;
+
+
+                questions.forEach((question, index) => {
+                    const questionCard = document.createElement('div');
+                    questionCard.className = 'quiz-card';
+                    questionCard.id = `q${index + 1}`;
+
+                    if (index === 0) {
+                        questionCard.classList.add('active');
+                    }
+
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question';
+                    questionDiv.textContent = `${index + 1}. ${question.question}`;
+                    questionCard.appendChild(questionDiv);
+
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options';
+
+                    const answerChoices = ['A', 'B', 'C', 'D'];
+                    answerChoices.forEach(choice => {
+                        const label = document.createElement('label');
+                        label.className = 'option';
+
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = `q${index + 1}`;
+                        input.value = choice;
+                        input.addEventListener('change', () => {
+                            checkAnswer(index, choice, question, questionCard);
+                        });
+                        label.appendChild(input);
+                        label.append(`${question[choice]}`);
+
+                        optionsDiv.appendChild(label);
+                    });
+                    questionCard.appendChild(optionsDiv);
+
+                    quizContainer.appendChild(questionCard);
+                });
+            }
+
+            function showQuestion(questionNumber) {
+                const allQuestionCards = document.querySelectorAll('.quiz-card');
+                allQuestionCards.forEach(card => card.classList.remove('active'));
+
+                const questionCard = document.getElementById(`q${questionNumber}`);
+                if (questionCard) {
+                    questionCard.classList.add('active');
+                    currentQuestion = questionNumber;
+
+                }
+            }
+
+
+            function checkAnswer(questionIndex, selectedAnswer, question, questionCard) {
+                answers[questionIndex] = selectedAnswer;
+                const isCorrect = selectedAnswer === question["Correct Answer"];
+                correctAnswers[questionIndex] = isCorrect;
+                markAnswer(questionIndex + 1, isCorrect);
+
+                const options = questionCard.querySelectorAll('.option');
+                options.forEach(option => {
+                    option.querySelector('input').disabled = true;
+                    if (option.querySelector('input').value === question["Correct Answer"]) {
+                        option.setAttribute('data-correct', 'true');
+                    } else if (option.querySelector('input').value === selectedAnswer) {
+                        option.setAttribute('data-correct', 'false');
+                    }
+                });
+
+                if (currentQuestion < totalQuestions) {
+                    setTimeout(() => {
+                        showQuestion(currentQuestion + 1);
+                        currentQuestion++;
+
+                    }, 500); // Delay before moving to the next question
+                }
+
+                enableSubmitButton();
+
+            }
+
+
+            function submitQuiz() {
+                quizContainer.style.display = 'none';
+
+
+                let score = 0;
+                correctAnswers.forEach(isCorrect => {
+                    if (isCorrect) score++;
+                });
+
+                const percentage = (score / totalQuestions) * 100;
+
+                scoreSpan.textContent = `${score}`;
+                totalScoreSpan.textContent = `${totalQuestions}`;
+                feedbackParagraph.textContent = getScoreFeedback(percentage);
+                percentageFeedback.textContent = `Percentage: ${percentage.toFixed(2)}%`;
+
+                resultCard.classList.add('active');
+
+                displayReview(questions, correctAnswers);
+
+
+            }
+
+            function getScoreFeedback(percentage) {
+                if (percentage === 100) {
+                    return "Perfect! You're an expert!";
+                } else if (percentage >= 70) {
+                    return "Great job! You have a good understanding.";
+                } else if (percentage >= 50) {
+                    return "Good effort! Review the material to improve.";
+                } else {
+                    return "Keep studying! More practice is needed.";
+                }
+            }
+
+            function reviewQuiz() {
+                resultCard.classList.remove('active');
+                quizContainer.style.display = 'block';
+                showQuestion(1);
+                reviewContainer.innerHTML = '';
+                const allQuestionCards = document.querySelectorAll('.quiz-card');
+                allQuestionCards.forEach(card => card.classList.remove('active'));
+                const firstQuestion = document.getElementById(`q${1}`);
+                firstQuestion.classList.add('active');
+                currentQuestion = 1;
+
+
+            }
+
+            function displayReview(questions, correctAnswers) {
+                reviewContainer.innerHTML = '';
+
+                questions.forEach((question, index) => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.className = 'review-item';
+
+                    const questionText = document.createElement('p');
+                    questionText.textContent = `${index + 1}. ${question.question}`;
+                    reviewItem.appendChild(questionText);
+
+                    const correctAnswer = document.createElement('p');
+                    correctAnswer.textContent = `Correct Answer: ${question["Correct Answer"]}`;
+                    reviewItem.appendChild(correctAnswer);
+
+                    if (correctAnswers[index]) {
+                        reviewItem.style.color = 'green';
+                    } else {
+                        reviewItem.style.color = 'red';
+                    }
+
+                    reviewContainer.appendChild(reviewItem);
+                });
+            }
+
+            function markAnswer(questionNumber, isCorrect) {
+                const questionCard = document.getElementById(`q${questionNumber}`);
+                if (questionCard) {
+                    if (isCorrect) {
+                        questionCard.style.border = '2px solid var(--correct-green)';
+                    } else {
+                        questionCard.style.border = '2px solid var(--incorrect-red)';
+                    }
+                }
+            }
+
+            function enableSubmitButton() {
+                let allAnswered = true;
+                // Check if all questions have been answered
+                for (let i = 0; i < questions.length; i++) {
+                    if (answers[i] == null) {
+                        allAnswered = false;
+                        break;
+                    }
+                }
+
+                const submitButton = document.querySelector('.btn-success'); // Get the submit button
+                if (submitButton && allAnswered) { // Check if the button exists AND all questions answered
+                    submitButton.style.display = 'inline-block';
+                } else if (submitButton) {
+                    submitButton.style.display = 'none';
+                }
+
+
+            }
+
+            function submitQuiz() {
+
+                resultCard.classList.add('active');
+                quizContainer.style.display = 'none';
+                let score = 0;
+                correctAnswers.forEach(isCorrect => {
+                    if (isCorrect) score++;
+                });
+
+                const percentage = (score / totalQuestions) * 100;
+
+                scoreSpan.textContent = `${score}`;
+                totalScoreSpan.textContent = `${totalQuestions}`;
+                feedbackParagraph.textContent = getScoreFeedback(percentage);
+                percentageFeedback.textContent = `Percentage: ${percentage.toFixed(2)}%`;
+
+                resultCard.classList.add('active');
+
+                displayReview(questions, correctAnswers);
+
+            }
+
+        });
+    </script>
+    
+</body>
+
+</html>
