@@ -388,7 +388,7 @@
             });
 
             async function generateQuestions(text) {
-                const modelName = "gemini-2.0-flash"; // Specify the model here
+                const modelName = "gemini-2.5-flash"; // Specify the model here
                 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
 
                 const prompt = `Generate ${totalQuestions} multiple-choice questions with 4 answer choices (A, B, C, D) based on the following text. Provide the correct answer for each question at the end, clearly labeled as "Correct Answer:". The output MUST be a valid JSON array of objects, and NOTHING ELSE. Each object should have the following keys: "question", "A", "B", "C", "D", and "Correct Answer".
